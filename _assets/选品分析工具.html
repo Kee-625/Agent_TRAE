@@ -241,6 +241,62 @@
     z-index: 9999;
     display: none;
   }
+
+  /* ===== 动态表（证据聚合 / 风险清单 / 竞品监控） ===== */
+  .table-scroll { overflow-x: auto; margin-bottom: 12px; }
+  .dyn-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+  .dyn-table th {
+    background: #f1f5f9; color: #475569; font-weight: 600; font-size: 12px;
+    padding: 8px 6px; text-align: left; border-bottom: 2px solid #e2e8f0; white-space: nowrap;
+  }
+  .dyn-table td { padding: 4px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+  .dyn-table input, .dyn-table select {
+    width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; font-family: inherit;
+  }
+  .dyn-table input:focus, .dyn-table select:focus { outline: none; border-color: #667eea; }
+  .btn-sm {
+    padding: 5px 10px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all .2s;
+  }
+  .btn-add { background: #667eea; color: white; }
+  .btn-add:hover { background: #5568d3; }
+  .btn-del { background: #fed7d7; color: #822727; }
+  .btn-del:hover { background: #fc8181; color: white; }
+  .rank-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .rank-1 { background: #fefcbf; color: #744210; }
+  .rank-2 { background: #e2e8f0; color: #4a5568; }
+  .rank-3 { background: #fbd38d; color: #7b341e; }
+  .evidence-bar { height: 6px; border-radius: 3px; background: #e2e8f0; overflow: hidden; min-width: 60px; }
+  .evidence-bar > span { display: block; height: 100%; background: #48bb78; }
+  .evidence-val { font-size: 12px; font-weight: 700; color: #2d3748; }
+
+  /* ===== 反方观点 ===== */
+  .counter-box {
+    margin-top: 8px; padding: 16px; border-radius: 12px;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe4e0 45%, #fffaf0 100%);
+    border: 1.5px solid #feb2b2;
+  }
+  .counter-box label.title { font-size: 15px; color: #742a2a; }
+  .counter-item {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px;
+    background: rgba(255,255,255,.75); border-radius: 8px; cursor: pointer; margin-bottom: 6px;
+  }
+  .counter-item:hover { background: #fff; }
+  .counter-item input { margin-top: 3px; width: 16px; height: 16px; cursor: pointer; }
+  .counter-item .text { font-size: 12.5px; line-height: 1.5; }
+
+  /* ===== 竞品监控 ===== */
+  .delta-up { color: #e53e3e; font-weight: 700; }
+  .delta-down { color: #38a169; font-weight: 700; }
+  .delta-flat { color: #a0aec0; }
+
+  /* ===== 验证复盘 ===== */
+  .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi-card { background: #f7fafc; border-radius: 10px; padding: 14px; text-align: center; }
+  .kpi-card .label { font-size: 12px; color: #718096; margin-bottom: 6px; }
+  .kpi-card input { width: 100%; text-align: center; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; font-size: 15px; font-weight: 600; }
+  .vs-box { background: #f0fff4; border: 1.5px solid #9ae6b4; border-radius: 10px; padding: 14px; margin-top: 12px; font-size: 13px; line-height: 1.7; }
+  .vs-box .bad { color: #e53e3e; font-weight: 700; }
+  .vs-box .good { color: #38a169; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -369,9 +425,43 @@
         </div>
       </div>
 
-      <!-- 3. 市场分析 -->
+      <!-- 3. 候选品证据聚合表 -->
       <div class="section" data-step="3">
-        <h2>三、市场分析（微信小店生态）</h2>
+        <h2>三、候选品证据聚合表</h2>
+        <p class="section-desc">把多个候选品横向放在一起聚合证据，自动计算「证据充分度」并排序</p>
+        <div class="table-scroll">
+          <table class="dyn-table" id="evidenceTable">
+            <thead>
+              <tr>
+                <th style="min-width:110px">候选品名称</th>
+                <th style="min-width:120px">需求证据<span style="font-weight:400;color:#94a3b8">（销量/搜索）</span></th>
+                <th style="min-width:120px">竞争证据<span style="font-weight:400;color:#94a3b8">（竞品数/垄断）</span></th>
+                <th style="min-width:120px">货源证据<span style="font-weight:400;color:#94a3b8">（1688价/代发）</span></th>
+                <th style="min-width:120px">利润证据<span style="font-weight:400;color:#94a3b8">（毛利/毛利率）</span></th>
+                <th style="min-width:120px">内容证据<span style="font-weight:400;color:#94a3b8">（可拍性/热度）</span></th>
+                <th style="min-width:82px">证据充分度</th>
+                <th style="min-width:66px">优先级</th>
+                <th style="min-width:52px">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn-sm btn-add" onclick="addEvidenceRow()">+ 添加候选品</button>
+        <div class="result-box" style="margin-top:16px;">
+          <h3>🏆 候选品优先级排序</h3>
+          <div id="evidenceRank" style="font-size:14px; line-height:1.9;">请至少填写一个候选品的证据</div>
+          <div class="hint" style="margin-top:8px; color:#718096;">证据充分度 ≥ 60% 才建议进入详细分析（后续步骤）；证据不足的项目需优先补齐</div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(2)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(4)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 4. 市场分析 -->
+      <div class="section" data-step="4">
+        <h2>四、市场分析（微信小店生态）</h2>
         <p class="section-desc">评估竞争烈度和内容机会</p>
         <div class="grid-2">
           <div class="form-group">
@@ -434,14 +524,14 @@
           <input type="text" id="cross_category" placeholder="例如：护膝可关联运动户外、医疗器械">
         </div>
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(2)">← 上一步</button>
-          <button class="btn btn-primary" onclick="goStep(4)">下一步 →</button>
+          <button class="btn btn-primary" onclick="goStep(3)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(5)">下一步 →</button>
         </div>
       </div>
 
-      <!-- 4. 货源供应链 -->
-      <div class="section" data-step="4">
-        <h2>四、货源与供应链（无货源代发）</h2>
+      <!-- 5. 货源供应链 -->
+      <div class="section" data-step="5">
+        <h2>五、货源与供应链（无货源代发）</h2>
         <p class="section-desc">无货源最怕断货，至少准备 2 家备选</p>
         <div class="grid-2">
           <div class="form-group">
@@ -506,14 +596,14 @@
           </div>
         </div>
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(3)">← 上一步</button>
-          <button class="btn btn-primary" onclick="goStep(5)">下一步 →</button>
+          <button class="btn btn-primary" onclick="goStep(4)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(6)">下一步 →</button>
         </div>
       </div>
 
-      <!-- 5. 成本利润 -->
-      <div class="section" data-step="5">
-        <h2>五、成本与利润测算</h2>
+      <!-- 6. 成本利润 -->
+      <div class="section" data-step="6">
+        <h2>六、成本与利润测算</h2>
         <p class="section-desc">无货源不付费模式：毛利率 ≥ 40%，单件毛利 ≥ 15 元</p>
         <table class="cost-table">
           <tr><td>货源进货价（元）</td><td><input type="number" id="cost_purchase" oninput="calcProfit()"></td></tr>
@@ -538,14 +628,14 @@
           <input type="number" id="return_rate" placeholder="中老年通常 10-15%" value="12">
         </div>
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(4)">← 上一步</button>
-          <button class="btn btn-primary" onclick="goStep(6)">下一步 →</button>
+          <button class="btn btn-primary" onclick="goStep(5)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(7)">下一步 →</button>
         </div>
       </div>
 
-      <!-- 6. 内容流量 -->
-      <div class="section" data-step="6">
-        <h2>六、内容与流量获取（自然流量）</h2>
+      <!-- 7. 内容流量 -->
+      <div class="section" data-step="7">
+        <h2>七、内容与流量获取（自然流量）</h2>
         <p class="section-desc">不付费投放，内容是唯一流量来源</p>
         <div class="form-group">
           <label>主推内容形式</label>
@@ -611,14 +701,14 @@
           </div>
         </div>
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(5)">← 上一步</button>
-          <button class="btn btn-primary" onclick="goStep(7)">下一步 →</button>
+          <button class="btn btn-primary" onclick="goStep(6)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(8)">下一步 →</button>
         </div>
       </div>
 
-      <!-- 7. 风险评估 -->
-      <div class="section" data-step="7">
-        <h2>七、风险评估</h2>
+      <!-- 8. 风险评估 + 反方观点 -->
+      <div class="section" data-step="8">
+        <h2>八、风险清单与反方观点</h2>
         <p class="section-desc">评估各类风险等级</p>
         <table class="cost-table">
           <tr><td>货源断货/涨价</td><td><select id="risk_stock" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
@@ -628,21 +718,150 @@
           <tr><td>退换货亏损</td><td><select id="risk_return" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
           <tr><td>跨类目违规</td><td><select id="risk_cross" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
         </table>
+        <div class="form-group" style="margin-top:24px;">
+          <label>自定义风险清单（补充固定项之外的个性化风险）</label>
+          <div class="table-scroll">
+            <table class="dyn-table" id="customRiskTable">
+              <thead><tr><th style="width:36%">风险描述</th><th style="width:14%">等级</th><th style="width:40%">应对措施</th><th style="width:10%">操作</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <button class="btn-sm btn-add" onclick="addRiskRow()">+ 添加风险项</button>
+        </div>
+
+        <div class="counter-box">
+          <label class="title">🛡️ 反方观点（证伪：找出「不该做这个品」的理由）</label>
+          <div class="hint" style="color:#9b2c2c; margin:8px 0 12px;">主动寻找反对理由并勾选认同项；勾选越多，决策置信度越低</div>
+          <div class="checkbox-group">
+            <label class="counter-item"><input type="checkbox" id="counter_1"><span class="text">这个品只是「我觉得好」，<strong>缺乏真实销量/搜索数据支撑</strong></span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_2"><span class="text">类目<strong>同质化严重</strong>，没有可差异化的卖点</span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_3"><span class="text">退货率可能被<strong>低估</strong>，中老年真实退货意愿高于预期</span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_4"><span class="text">供应商规模小，随时可能<strong>断货或涨价</strong></span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_5"><span class="text">内容能否拍出来、能否跑量<strong>仍是未知数</strong></span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_6"><span class="text">可能踩到平台<strong>资质红线</strong>（医疗/食品/功效宣传）</span></label>
+            <label class="counter-item"><input type="checkbox" id="counter_7"><span class="text">利润测算过于乐观，<strong>没算隐性成本</strong>（售后/时间）</span></label>
+          </div>
+          <div class="form-group" style="margin-top:14px;">
+            <label>针对以上反方观点，我的反驳与验证</label>
+            <textarea id="counter_rebuttal" rows="3" placeholder="逐条说明你如何验证或反驳，例如：已查1688有3家稳定供应商，月销数据来自蝉妈妈…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>证伪结论</label>
+            <div class="radio-group">
+              <label><input type="radio" name="counter_result" value="反方不成立"><span>反方不成立（可选）</span></label>
+              <label><input type="radio" name="counter_result" value="部分成立"><span>部分成立（需谨慎）</span></label>
+              <label><input type="radio" name="counter_result" value="反方成立"><span>反方成立（应放弃）</span></label>
+            </div>
+          </div>
+        </div>
+
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(6)">← 上一步</button>
-          <button class="btn btn-primary" onclick="goStep(8)">查看决策 →</button>
+          <button class="btn btn-primary" onclick="goStep(7)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(9)">查看决策 →</button>
         </div>
       </div>
 
-      <!-- 8. 决策结论 -->
-      <div class="section" data-step="8">
-        <h2>八、决策结论</h2>
+      <!-- 9. 决策结论 -->
+      <div class="section" data-step="9">
+        <h2>九、决策结论</h2>
         <p class="section-desc">系统根据填写内容自动评分并给出建议</p>
         <div id="scorePanel"></div>
         <div id="decisionPanel"></div>
         <div class="nav-buttons">
-          <button class="btn btn-primary" onclick="goStep(7)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(8)">← 上一步</button>
           <button class="btn btn-success" onclick="exportMarkdown()">📥 导出完整报告</button>
+          <button class="btn btn-primary" onclick="goStep(10)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 10. 竞品持续监控 -->
+      <div class="section" data-step="10">
+        <h2>十、竞品持续监控</h2>
+        <p class="section-desc">记录竞品基线与最新数据，自动计算变化幅度并提示异动</p>
+        <div class="table-scroll">
+          <table class="dyn-table" id="monitorTable">
+            <thead>
+              <tr>
+                <th style="min-width:120px">竞品名称/链接</th>
+                <th style="min-width:92px">监控频率</th>
+                <th style="min-width:78px">基线价</th>
+                <th style="min-width:78px">最新价</th>
+                <th style="min-width:92px">价格变化</th>
+                <th style="min-width:90px">基线销量</th>
+                <th style="min-width:90px">最新销量</th>
+                <th style="min-width:92px">销量变化</th>
+                <th style="min-width:140px">异动备注</th>
+                <th style="min-width:52px">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn-sm btn-add" onclick="addMonitorRow()">+ 添加竞品</button>
+        <div class="result-box" style="margin-top:16px;">
+          <h3>🚨 异动预警</h3>
+          <div id="monitorAlert" style="font-size:14px; line-height:1.9;">请添加竞品并填写基线与最新数据</div>
+          <div class="hint" style="margin-top:8px; color:#718096;">价格或销量变化幅度 ≥ 10% 视为异动，需人工跟进分析原因</div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(9)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(11)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 11. 验证记录与复盘 -->
+      <div class="section" data-step="11">
+        <h2>十一、验证记录与复盘</h2>
+        <p class="section-desc">上架后小批量测试的数据记录与复盘，闭合「选品—验证」闭环</p>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>上架日期</label>
+            <input type="text" id="rev_launch_date" placeholder="2026-10-20">
+          </div>
+          <div class="form-group">
+            <label>测试周期（天）</label>
+            <input type="number" id="rev_period" placeholder="例如：5">
+          </div>
+          <div class="form-group">
+            <label>验证状态</label>
+            <select id="rev_status">
+              <option value="">请选择</option>
+              <option value="进行中">进行中</option>
+              <option value="已完成">已完成</option>
+            </select>
+          </div>
+        </div>
+        <label style="font-size:13px;font-weight:600;color:#2d3748;display:block;margin-bottom:8px;">实测数据（自动与上架前计划对比）</label>
+        <div class="review-grid">
+          <div class="kpi-card"><div class="label">曝光量</div><input type="number" id="rev_exposure" oninput="calcReview()"></div>
+          <div class="kpi-card"><div class="label">点击率（%）</div><input type="number" id="rev_ctr" oninput="calcReview()"></div>
+          <div class="kpi-card"><div class="label">转化率（%）</div><input type="number" id="rev_cvr" oninput="calcReview()"></div>
+          <div class="kpi-card"><div class="label">订单数</div><input type="number" id="rev_orders" oninput="calcReview()"></div>
+          <div class="kpi-card"><div class="label">实际毛利率（%）</div><input type="number" id="rev_margin" oninput="calcReview()"></div>
+        </div>
+        <div class="vs-box" id="reviewVs">填写实测数据后，自动与上架前的计划对比</div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>问题记录（卡点、异常、售后问题）</label>
+          <textarea id="rev_issues" rows="3" placeholder="例如：第2天流量骤降，评论区多名用户反映尺码偏小…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>复盘结论</label>
+          <div class="radio-group">
+            <label><input type="radio" name="rev_result" value="继续放大"><span>✅ 继续放大（加内容/加SKU）</span></label>
+            <label><input type="radio" name="rev_result" value="优化迭代"><span>🔧 优化迭代（改详情/改价/改内容）</span></label>
+            <label><input type="radio" name="rev_result" value="下架放弃"><span>🛑 下架放弃</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>下轮行动</label>
+          <input type="text" id="rev_action1" placeholder="行动 1" style="margin-bottom:8px;">
+          <input type="text" id="rev_action2" placeholder="行动 2" style="margin-bottom:8px;">
+          <input type="text" id="rev_action3" placeholder="行动 3">
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(10)">← 上一步</button>
+          <button class="btn btn-success" onclick="exportMarkdown()">📥 导出完整报告</button>
+          <button class="btn btn-primary" onclick="goStep(1)">回到开头 →</button>
         </div>
       </div>
     </div>
@@ -653,9 +872,10 @@
 
 <script>
 const steps = [
-  {n:1, name:'基本信息'}, {n:2, name:'人群适配'}, {n:3, name:'市场分析'},
-  {n:4, name:'货源供应链'}, {n:5, name:'成本利润'}, {n:6, name:'内容流量'},
-  {n:7, name:'风险评估'}, {n:8, name:'决策结论'}
+  {n:1, name:'基本信息'}, {n:2, name:'人群适配'}, {n:3, name:'证据聚合表'},
+  {n:4, name:'市场分析'}, {n:5, name:'货源供应链'}, {n:6, name:'成本利润'},
+  {n:7, name:'内容流量'}, {n:8, name:'风险与反方'}, {n:9, name:'决策结论'},
+  {n:10, name:'竞品监控'}, {n:11, name:'验证复盘'}
 ];
 
 function renderNav() {
@@ -671,7 +891,10 @@ function goStep(n) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelector(`.section[data-step="${n}"]`).classList.add('active');
   document.querySelectorAll('.step-item').forEach((s,i) => s.classList.toggle('active', i===n-1));
-  if (n === 8) { calcAll(); }
+  if (n === 9) { calcAll(); }
+  if (n === 3) { recalcEvidence(); }
+  if (n === 10) { recalcMonitor(); }
+  if (n === 11) { calcReview(); }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -692,6 +915,172 @@ function updateWinterTip() {
   }
   if (gift === '强' && days > 0 && days <= 60) msg += ' · 年货礼推荐上架';
   tip.textContent = msg;
+}
+
+// ===== 通用：删除动态表行 =====
+function removeRow(btn) {
+  const tr = btn.closest('tr');
+  tr.remove();
+  recalcEvidence();
+  recalcMonitor();
+}
+
+// ===== 候选品证据聚合表 =====
+function addEvidenceRow() {
+  const tbody = document.querySelector('#evidenceTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td><input type="text" class="ev-name" placeholder="如 护膝" oninput="recalcEvidence()"></td>
+     <td><input type="text" class="ev-cell" placeholder="同行月销3000+" oninput="recalcEvidence()"></td>
+     <td><input type="text" class="ev-cell" placeholder="同类50家无垄断" oninput="recalcEvidence()"></td>
+     <td><input type="text" class="ev-cell" placeholder="1688 12元支持代发" oninput="recalcEvidence()"></td>
+     <td><input type="text" class="ev-cell" placeholder="毛利45元/65%" oninput="recalcEvidence()"></td>
+     <td><input type="text" class="ev-cell" placeholder="同类视频10万赞" oninput="recalcEvidence()"></td>
+     <td class="ev-score" style="text-align:center;">-</td>
+     <td class="ev-rank" style="text-align:center;">-</td>
+     <td style="text-align:center;"><button class="btn-sm btn-del" onclick="removeRow(this)">删</button></td>`;
+  tbody.appendChild(tr);
+  recalcEvidence();
+}
+
+function recalcEvidence() {
+  const tbody = document.querySelector('#evidenceTable tbody');
+  if (!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')];
+  const data = rows.map(tr => {
+    const cells = [...tr.querySelectorAll('.ev-cell')];
+    const filled = cells.filter(c => c.value.trim() !== '').length;
+    const score = cells.length ? Math.round(filled / cells.length * 100) : 0;
+    return { tr, name: (tr.querySelector('.ev-name')?.value || '').trim(), score, filled, total: cells.length };
+  });
+  data.forEach(d => {
+    const el = d.tr.querySelector('.ev-score');
+    if (el) {
+      const color = d.score >= 60 ? '#48bb78' : d.score >= 40 ? '#ecc94b' : '#fc8181';
+      el.innerHTML = `<div class="evidence-bar"><span style="width:${d.score}%; background:${color}"></span></div><div class="evidence-val">${d.score}%</div>`;
+    }
+    const rk = d.tr.querySelector('.ev-rank');
+    if (rk) rk.textContent = '-';
+  });
+  const valid = data.filter(d => d.name);
+  valid.sort((a, b) => b.score - a.score);
+  valid.forEach((d, i) => {
+    const rk = d.tr.querySelector('.ev-rank');
+    if (rk) rk.innerHTML = `<span class="rank-badge rank-${i + 1}">#${i + 1}</span>`;
+  });
+  const box = document.getElementById('evidenceRank');
+  if (box) {
+    if (!valid.length) {
+      box.textContent = '请至少填写一个候选品的名称与证据';
+    } else {
+      box.innerHTML = valid.map((d, i) => {
+        const flag = d.score >= 60 ? '✅ 证据充分' : d.score >= 40 ? '⚠️ 证据一般' : '❌ 证据不足';
+        return `#${i + 1} <strong>${d.name}</strong> ｜ 证据充分度 ${d.score}%（${d.filled}/${d.total}）｜ ${flag}`;
+      }).join('<br>');
+    }
+  }
+}
+
+// ===== 自定义风险清单 =====
+function addRiskRow() {
+  const tbody = document.querySelector('#customRiskTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td><input type="text" placeholder="如 物流偏远地区加价"></td>
+     <td><select><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td>
+     <td><input type="text" placeholder="应对措施"></td>
+     <td style="text-align:center;"><button class="btn-sm btn-del" onclick="removeRow(this)">删</button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ===== 竞品持续监控 =====
+function addMonitorRow() {
+  const tbody = document.querySelector('#monitorTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td><input type="text" class="m-name" placeholder="竞品名称/链接" oninput="recalcMonitor()"></td>
+     <td><select><option value="每日">每日</option><option value="每周">每周</option><option value="每月">每月</option></select></td>
+     <td><input type="number" class="m-base-price" placeholder="基线价" oninput="recalcMonitor()"></td>
+     <td><input type="number" class="m-last-price" placeholder="最新价" oninput="recalcMonitor()"></td>
+     <td class="m-price-delta" style="text-align:center;">-</td>
+     <td><input type="number" class="m-base-sales" placeholder="基线销量" oninput="recalcMonitor()"></td>
+     <td><input type="number" class="m-last-sales" placeholder="最新销量" oninput="recalcMonitor()"></td>
+     <td class="m-sales-delta" style="text-align:center;">-</td>
+     <td><input type="text" class="m-note" placeholder="如：降价促销/新品上架"></td>
+     <td style="text-align:center;"><button class="btn-sm btn-del" onclick="removeRow(this)">删</button></td>`;
+  tbody.appendChild(tr);
+  recalcMonitor();
+}
+
+function calcDelta(base, last) {
+  if (!base || !last || base === 0) return null;
+  return (last - base) / base * 100;
+}
+
+function fmtDelta(pct) {
+  if (pct === null) return '-';
+  const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+  const cls = pct > 0 ? 'delta-up' : pct < 0 ? 'delta-down' : 'delta-flat';
+  return `<span class="${cls}">${arrow} ${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</span>`;
+}
+
+function recalcMonitor() {
+  const tbody = document.querySelector('#monitorTable tbody');
+  if (!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')];
+  const alerts = [];
+  rows.forEach(tr => {
+    const name = (tr.querySelector('.m-name')?.value || '').trim();
+    const bp = parseFloat(tr.querySelector('.m-base-price')?.value) || 0;
+    const lp = parseFloat(tr.querySelector('.m-last-price')?.value) || 0;
+    const bs = parseFloat(tr.querySelector('.m-base-sales')?.value) || 0;
+    const ls = parseFloat(tr.querySelector('.m-last-sales')?.value) || 0;
+    const pd = calcDelta(bp, lp);
+    const sd = calcDelta(bs, ls);
+    const pdEl = tr.querySelector('.m-price-delta');
+    const sdEl = tr.querySelector('.m-sales-delta');
+    if (pdEl) pdEl.innerHTML = fmtDelta(pd);
+    if (sdEl) sdEl.innerHTML = fmtDelta(sd);
+    if (name && pd !== null && Math.abs(pd) >= 10) alerts.push(`${name} 价格${pd > 0 ? '上涨' : '下跌'} ${Math.abs(pd).toFixed(1)}%`);
+    if (name && sd !== null && Math.abs(sd) >= 10) alerts.push(`${name} 销量${sd > 0 ? '上升' : '下滑'} ${Math.abs(sd).toFixed(1)}%`);
+  });
+  const box = document.getElementById('monitorAlert');
+  if (box) {
+    const hasData = rows.some(tr => (tr.querySelector('.m-name')?.value || '').trim());
+    if (!hasData) box.textContent = '请添加竞品并填写基线与最新数据';
+    else if (!alerts.length) box.innerHTML = '<span class="good">暂无 ≥10% 的异动，竞品表现平稳</span>';
+    else box.innerHTML = `<span class="bad">发现 ${alerts.length} 项异动：</span><br>` + alerts.map(a => '• ' + a).join('<br>');
+  }
+}
+
+// ===== 验证复盘 =====
+function calcReview() {
+  const box = document.getElementById('reviewVs');
+  if (!box) return;
+  const actual = parseFloat(val('rev_margin'));
+  const sell = parseFloat(val('price_sell')) || 0;
+  const purchase = parseFloat(val('cost_purchase')) || 0;
+  const freight = parseFloat(val('cost_freight')) || 0;
+  const pack = parseFloat(val('cost_pack')) || 0;
+  const rateP = (parseFloat(val('rate_platform')) || 0) / 100;
+  const ratePay = (parseFloat(val('rate_pay')) || 0) / 100;
+  const totalCost = purchase + freight + pack + sell * (rateP + ratePay);
+  const planned = sell > 0 ? (sell - totalCost) / sell * 100 : 0;
+  const exposure = parseFloat(val('rev_exposure')) || 0;
+  const ctr = parseFloat(val('rev_ctr')) || 0;
+  const cvr = parseFloat(val('rev_cvr')) || 0;
+  const orders = parseFloat(val('rev_orders')) || 0;
+
+  let html = '';
+  if (sell > 0 && !isNaN(actual)) {
+    const diff = actual - planned;
+    const cls = diff >= 0 ? 'good' : 'bad';
+    html += `计划毛利率 <strong>${planned.toFixed(1)}%</strong> → 实际毛利率 <strong class="${cls}">${actual.toFixed(1)}%</strong>（较计划${diff >= 0 ? '高' : '低'} ${Math.abs(diff).toFixed(1)} 个百分点）<br>`;
+  }
+  if (exposure > 0 || orders > 0) {
+    html += `曝光 ${exposure} ｜ 点击率 ${ctr}% ｜ 转化率 ${cvr}% ｜ 订单 ${orders} ｜ 估算销售额 ¥${(orders * sell).toFixed(0)}`;
+  }
+  box.innerHTML = html || '填写实测数据后，自动与上架前的计划对比';
 }
 
 function calcProfit() {
@@ -828,6 +1217,26 @@ function calcAll() {
   if (radioVal('monopoly') === '是') { reasons.push('类目被品牌垄断，无货源难以竞争'); veto = true; }
   if (checked('risk_safety') && val('risk_rule') === '高') { reasons.push('质量安全隐患+平台规则风险高，不建议进入'); veto = true; }
 
+  // 反方观点（证伪）与证据充分度
+  const counterIds = ['counter_1','counter_2','counter_3','counter_4','counter_5','counter_6','counter_7'];
+  const counterCount = counterIds.filter(id => checked(id)).length;
+  const counterResult = radioVal('counter_result');
+  if (counterResult === '反方成立') { reasons.push('证伪结论：反方观点成立，应放弃该品'); veto = true; }
+  if (counterCount >= 4 && counterResult !== '反方成立') { reasons.push(`反方观点勾选较多（${counterCount} 项），决策置信度偏低，需补充验证`); }
+
+  let evidenceBest = 0, evidenceName = '';
+  const evTbody = document.querySelector('#evidenceTable tbody');
+  if (evTbody) {
+    [...evTbody.querySelectorAll('tr')].forEach(tr => {
+      const name = (tr.querySelector('.ev-name')?.value || '').trim();
+      if (!name) return;
+      const filledCells = [...tr.querySelectorAll('.ev-cell')].filter(c => c.value.trim() !== '').length;
+      const sc = Math.round(filledCells / 5 * 100);
+      if (sc > evidenceBest) { evidenceBest = sc; evidenceName = name; }
+    });
+  }
+  if (evidenceBest > 0 && evidenceBest < 60) reasons.push(`首选候选品「${evidenceName}」证据充分度仅 ${evidenceBest}%，建议先补齐数据再上`);
+
   let decision, icon, cls, desc;
   if (veto || avg < 2.2) {
     decision = '❌ 建议放弃'; icon = '🚫'; cls = 'decision-stop';
@@ -854,11 +1263,17 @@ function calcAll() {
     if (val('winter_gift') === '强' && springDays > 0 && springDays <= 60) reasons.push('春节送礼属性强，年货窗口转化高');
   }
 
+  const meta = [];
+  if (evidenceName) meta.push(`首选候选品「${evidenceName}」证据充分度 ${evidenceBest}%`);
+  if (counterCount) meta.push(`反方观点勾选 ${counterCount} 项`);
+  if (counterResult) meta.push(`证伪结论：${counterResult}`);
+
   document.getElementById('decisionPanel').innerHTML =
     `<div class="decision-panel ${cls}">
       <div class="decision-icon">${icon}</div>
       <div class="decision-title">${decision}</div>
       <div class="decision-desc">${desc}<br>综合评分：<strong>${avg.toFixed(1)}</strong> / 5.0</div>
+      ${meta.length ? '<div class="decision-desc" style="font-size:13px;">🔎 ' + meta.join(' ｜ ') + '</div>' : ''}
       ${reasons.length ? '<ul class="reasons">' + reasons.map(r=>`<li>• ${r}</li>`).join('') + '</ul>' : ''}
     </div>`;
 }
@@ -888,15 +1303,75 @@ function exportMarkdown() {
     checked('winter_safe') && '安全出行类'
   ].filter(Boolean);
   md += `## 二·附、冬季专项\n- 冬季刚需类型：${winterItems.length ? winterItems.join('、') : '无'}\n- 低温关联度：${val('winter_temp')||'-'}\n- 春节送礼属性：${val('winter_gift')||'-'}\n- 距春节天数：${val('winter_spring_days')||'-'} 天\n\n`;
-  md += `## 三、市场分析\n- 同类数量：${val('supply_count')}\n- 头部销量：${val('top_sales')}\n- 价格带：${val('price_min')}~${val('price_max')} 元（中位 ${val('price_mid')}）\n- 品牌垄断：${radioVal('monopoly')||'-'}\n- 内容互动：${val('content_interact')}\n- 制作成本：${val('content_cost')}\n- 跨类目：${val('cross_category')}\n\n`;
-  md += `## 四、货源供应链\n- 平台：${val('supply_platform')}\n- 一件代发：${radioVal('dropship')||'-'}\n- 7天无理由：${radioVal('noreturn')||'-'}\n- 运费险：${radioVal('freightins')||'-'}\n- 发货时效：${val('ship_hours')} 小时\n- 库存：${val('stock')}\n\n`;
-  md += `## 五、成本利润\n| 项目 | 金额 |\n|------|------|\n| 进货价 | ¥${purchase} |\n| 运费 | ¥${freight} |\n| 包装 | ¥${pack} |\n| 平台扣点 | ${val('rate_platform')}% |\n| 支付通道 | ${val('rate_pay')}% |\n| 综合成本 | ¥${totalCost.toFixed(2)} |\n| 计划售价 | ¥${sell} |\n| 单件毛利 | ¥${profit.toFixed(2)} |\n| 毛利率 | ${margin}% |\n| 预计月销 | ${val('monthly_sales')} |\n| 月毛利 | ¥${(profit*parseFloat(val('monthly_sales')||0)).toFixed(0)} |\n\n`;
-  md += `## 六、内容流量\n- 形式：${[checked('form_video')&&'短视频',checked('form_image')&&'图文',checked('form_live')&&'直播'].filter(Boolean).join('、')||'-'}\n- 脚本方向：${val('script_dir')}\n- 可复制性：${val('content_replicate')}\n- 冷启动：${val('cold_start')}\n- 转化入口：${val('conversion')}\n- 私域价值：${radioVal('private')||'-'}\n\n`;
-  md += `## 七、风险评估\n- 断货涨价：${val('risk_stock')}\n- 售后纠纷：${val('risk_service')}\n- 规则收紧：${val('risk_rule')}\n- 内容侵权：${val('risk_infringe')}\n- 退换亏损：${val('risk_return')}\n- 跨类违规：${val('risk_cross')}\n\n`;
+  // 三、候选品证据聚合表
+  md += `## 三、候选品证据聚合表\n`;
+  const evRows = [...document.querySelectorAll('#evidenceTable tbody tr')];
+  const evData = evRows.map(tr => {
+    const name = (tr.querySelector('.ev-name')?.value || '').trim();
+    const cells = [...tr.querySelectorAll('.ev-cell')].map(c => (c.value || '').trim());
+    const filled = cells.filter(c => c).length;
+    return { name, cells, score: Math.round(filled / 5 * 100) };
+  }).filter(d => d.name);
+  if (evData.length) {
+    evData.sort((a, b) => b.score - a.score);
+    md += `| 候选品 | 需求证据 | 竞争证据 | 货源证据 | 利润证据 | 内容证据 | 证据充分度 |\n|------|------|------|------|------|------|------|\n`;
+    evData.forEach((d, i) => {
+      md += `| #${i + 1} ${d.name} | ${d.cells[0] || '-'} | ${d.cells[1] || '-'} | ${d.cells[2] || '-'} | ${d.cells[3] || '-'} | ${d.cells[4] || '-'} | ${d.score}% |\n`;
+    });
+    md += `\n`;
+  } else { md += `（未填写候选品证据）\n\n`; }
+  md += `## 四、市场分析\n- 同类数量：${val('supply_count')}\n- 头部销量：${val('top_sales')}\n- 价格带：${val('price_min')}~${val('price_max')} 元（中位 ${val('price_mid')}）\n- 品牌垄断：${radioVal('monopoly')||'-'}\n- 内容互动：${val('content_interact')}\n- 制作成本：${val('content_cost')}\n- 跨类目：${val('cross_category')}\n\n`;
+  md += `## 五、货源供应链\n- 平台：${val('supply_platform')}\n- 一件代发：${radioVal('dropship')||'-'}\n- 7天无理由：${radioVal('noreturn')||'-'}\n- 运费险：${radioVal('freightins')||'-'}\n- 发货时效：${val('ship_hours')} 小时\n- 库存：${val('stock')}\n\n`;
+  md += `## 六、成本利润\n| 项目 | 金额 |\n|------|------|\n| 进货价 | ¥${purchase} |\n| 运费 | ¥${freight} |\n| 包装 | ¥${pack} |\n| 平台扣点 | ${val('rate_platform')}% |\n| 支付通道 | ${val('rate_pay')}% |\n| 综合成本 | ¥${totalCost.toFixed(2)} |\n| 计划售价 | ¥${sell} |\n| 单件毛利 | ¥${profit.toFixed(2)} |\n| 毛利率 | ${margin}% |\n| 预计月销 | ${val('monthly_sales')} |\n| 月毛利 | ¥${(profit*parseFloat(val('monthly_sales')||0)).toFixed(0)} |\n\n`;
+  md += `## 七、内容流量\n- 形式：${[checked('form_video')&&'短视频',checked('form_image')&&'图文',checked('form_live')&&'直播'].filter(Boolean).join('、')||'-'}\n- 脚本方向：${val('script_dir')}\n- 可复制性：${val('content_replicate')}\n- 冷启动：${val('cold_start')}\n- 转化入口：${val('conversion')}\n- 私域价值：${radioVal('private')||'-'}\n\n`;
+  md += `## 八、风险清单与反方观点\n### 固定风险项\n- 断货涨价：${val('risk_stock')}\n- 售后纠纷：${val('risk_service')}\n- 规则收紧：${val('risk_rule')}\n- 内容侵权：${val('risk_infringe')}\n- 退换亏损：${val('risk_return')}\n- 跨类违规：${val('risk_cross')}\n\n`;
+  // 自定义风险清单
+  const crRows = [...document.querySelectorAll('#customRiskTable tbody tr')];
+  const cr = crRows.map(tr => {
+    const inputs = tr.querySelectorAll('input');
+    const desc = (inputs[0]?.value || '').trim();
+    const level = tr.querySelector('select')?.value || '';
+    const action = (inputs[1]?.value || '').trim();
+    return desc ? `| ${desc} | ${level} | ${action || '-'} |` : '';
+  }).filter(Boolean);
+  md += `### 自定义风险清单\n`;
+  md += cr.length ? `| 风险描述 | 等级 | 应对措施 |\n|------|------|------|\n` + cr.join('\n') + `\n\n` : `（无）\n\n`;
+  // 反方观点
+  const counterIds = ['counter_1','counter_2','counter_3','counter_4','counter_5','counter_6','counter_7'];
+  const counterTexts = ['缺乏真实数据支撑','同质化严重无差异化','退货率可能被低估','供应商可能断货涨价','内容能否跑量未知','可能踩资质红线','利润测算过于乐观'];
+  const counterChecked = counterIds.map((id, i) => checked(id) ? counterTexts[i] : null).filter(Boolean);
+  md += `### 反方观点（证伪）\n- 勾选认同的反方观点：${counterChecked.length ? counterChecked.join('、') : '无'}\n- 反驳与验证：${val('counter_rebuttal') || '-'}\n- 证伪结论：${radioVal('counter_result') || '-'}\n\n`;
 
-  // 决策（简单计算）
-  const scoreEl = document.querySelector('.score-badge');
-  md += `## 八、决策结论\n（请在网页中查看完整评分与建议，或重新运行工具生成）\n`;
+  md += `## 九、决策结论\n（请在网页中查看完整评分与建议，或重新运行工具生成）\n\n`;
+
+  // 十、竞品持续监控
+  md += `## 十、竞品持续监控\n`;
+  const mRows = [...document.querySelectorAll('#monitorTable tbody tr')];
+  const mData = mRows.map(tr => {
+    const name = (tr.querySelector('.m-name')?.value || '').trim();
+    if (!name) return null;
+    const freq = tr.querySelector('select')?.value || '';
+    const bp = parseFloat(tr.querySelector('.m-base-price')?.value) || 0;
+    const lp = parseFloat(tr.querySelector('.m-last-price')?.value) || 0;
+    const bs = parseFloat(tr.querySelector('.m-base-sales')?.value) || 0;
+    const ls = parseFloat(tr.querySelector('.m-last-sales')?.value) || 0;
+    const note = (tr.querySelector('.m-note')?.value || '').trim();
+    const pd = (bp && lp) ? ((lp - bp) / bp * 100).toFixed(1) : '-';
+    const sd = (bs && ls) ? ((ls - bs) / bs * 100).toFixed(1) : '-';
+    return { name, freq, bp, lp, pd, bs, ls, sd, note };
+  }).filter(Boolean);
+  if (mData.length) {
+    md += `| 竞品 | 频率 | 基线价 | 最新价 | 价格变化 | 基线销量 | 最新销量 | 销量变化 | 备注 |\n|------|------|------|------|------|------|------|------|------|\n`;
+    mData.forEach(d => { md += `| ${d.name} | ${d.freq} | ${d.bp || '-'} | ${d.lp || '-'} | ${d.pd}% | ${d.bs || '-'} | ${d.ls || '-'} | ${d.sd}% | ${d.note || '-'} |\n`; });
+    md += `\n`;
+  } else { md += `（未添加竞品监控）\n\n`; }
+
+  // 十一、验证记录与复盘
+  md += `## 十一、验证记录与复盘\n`;
+  md += `- 上架日期：${val('rev_launch_date') || '-'} ｜ 测试周期：${val('rev_period') || '-'} 天 ｜ 状态：${val('rev_status') || '-'}\n`;
+  md += `- 实测：曝光 ${val('rev_exposure') || '-'} / 点击率 ${val('rev_ctr') || '-'}% / 转化率 ${val('rev_cvr') || '-'}% / 订单 ${val('rev_orders') || '-'} / 实际毛利率 ${val('rev_margin') || '-'}%\n`;
+  md += `- 问题记录：${val('rev_issues') || '-'}\n- 复盘结论：${radioVal('rev_result') || '-'}\n`;
+  md += `- 下轮行动：1) ${val('rev_action1') || '-'} 2) ${val('rev_action2') || '-'} 3) ${val('rev_action3') || '-'}\n`;
 
   const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -921,6 +1396,12 @@ function resetForm() {
   document.querySelectorAll('input[type="checkbox"]').forEach(e=>e.checked=false);
   document.querySelectorAll('select').forEach(e=>e.selectedIndex=0);
   document.querySelectorAll('input[type="radio"]').forEach(e=>e.checked=false);
+  ['evidenceTable','customRiskTable','monitorTable'].forEach(id => {
+    const tb = document.querySelector('#'+id+' tbody');
+    if (tb) tb.innerHTML = '';
+  });
+  addEvidenceRow();
+  addMonitorRow();
   document.getElementById('rate_platform').value = 3;
   document.getElementById('rate_pay').value = 0.6;
   document.getElementById('return_rate').value = 12;
@@ -932,6 +1413,8 @@ function resetForm() {
 // 初始化
 renderNav();
 document.getElementById('date').value = new Date().toLocaleDateString('zh-CN');
+addEvidenceRow();
+addMonitorRow();
 </script>
 </body>
 </html>
