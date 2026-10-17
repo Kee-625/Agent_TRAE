@@ -315,6 +315,54 @@
             <label class="checkbox-item"><input type="checkbox" id="match_filial"><span class="text">容易引发<strong>子女代购</strong>（孝心经济是微信生态强转化点）</span></label>
           </div>
         </div>
+
+        <!-- 冬季专项 -->
+        <div class="form-group" style="margin-top:24px; padding:16px; background:linear-gradient(135deg,#e0f2fe 0%,#f0f9ff 100%); border-radius:12px; border:1.5px solid #7dd3fc;">
+          <label style="font-size:15px; color:#0c4a6e;">❄️ 冬季选品专项</label>
+          <div class="hint" style="color:#0369a1; margin-bottom:12px;">冬季是中老年刚需旺季，勾选后需求强度大幅加权</div>
+
+          <div style="margin-bottom:14px;">
+            <label style="font-size:13px; font-weight:600; color:#2d3748; margin-bottom:6px; display:block;">冬季刚需类型（可多选）</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_warm"><span class="text"><strong>保暖类</strong>（保暖内衣、羽绒服、暖手宝、暖宝宝、电热毯）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_protect"><span class="text"><strong>护具类</strong>（护膝、护腰、护颈、关节保暖，冬季老寒腿高发）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_chronic"><span class="text"><strong>慢病管理类</strong>（血压计、血糖仪、制氧机，冬季心血管病高发）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_nourish"><span class="text"><strong>滋补养生类</strong>（阿胶、燕窝、枸杞、养生茶，冬令进补）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_safe"><span class="text"><strong>安全出行类</strong>（防滑鞋、拐杖、助行器，冬季路滑跌倒风险高）</span></label>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>低温关联度</label>
+              <select id="winter_temp" onchange="updateWinterTip()">
+                <option value="">请选择</option>
+                <option value="强">强（必须在低温环境使用）</option>
+                <option value="中">中（冬季体验明显更好）</option>
+                <option value="弱">弱（与温度关系不大）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>春节送礼属性</label>
+              <select id="winter_gift" onchange="updateWinterTip()">
+                <option value="">请选择</option>
+                <option value="强">强（典型年货/孝心礼）</option>
+                <option value="中">中（可作为礼品）</option>
+                <option value="弱">弱（自用为主）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>距春节天数（自动计算加权）</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="number" id="winter_spring_days" placeholder="例如：60" oninput="updateWinterTip()" style="flex:1;">
+              <span style="font-size:12px; color:#0369a1;" id="winter_tip">距离春节越近，送礼转化越强</span>
+            </div>
+            <div class="hint">≤30天：强需求爆发期 | 31-60天：预热期 | >60天：常规期</div>
+          </div>
+        </div>
+
         <div class="nav-buttons">
           <button class="btn btn-primary" onclick="goStep(1)">← 上一步</button>
           <button class="btn btn-primary" onclick="goStep(3)">下一步 →</button>
@@ -631,6 +679,21 @@ function val(id) { const el = document.getElementById(id); return el ? el.value 
 function checked(id) { const el = document.getElementById(id); return el ? el.checked : false; }
 function radioVal(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
 
+function updateWinterTip() {
+  const days = parseFloat(val('winter_spring_days'));
+  const gift = val('winter_gift');
+  const tip = document.getElementById('winter_tip');
+  if (!tip) return;
+  let msg = '距离春节越近，送礼转化越强';
+  if (days > 0) {
+    if (days <= 30) msg = '🔥 距春节≤30天，年货爆发期，送礼需求最强';
+    else if (days <= 60) msg = '📈 距春节31-60天，预热期，适合提前布局';
+    else msg = '常规期，春节红利尚未开启';
+  }
+  if (gift === '强' && days > 0 && days <= 60) msg += ' · 年货礼推荐上架';
+  tip.textContent = msg;
+}
+
 function calcProfit() {
   const purchase = parseFloat(val('cost_purchase')) || 0;
   const freight = parseFloat(val('cost_freight')) || 0;
@@ -670,6 +733,17 @@ function calcAll() {
   if (checked('need_seasonal')) d += 0.5;
   if (checked('match_simple')) d += 0.5;
   if (checked('match_filial')) d += 0.5;
+  // 冬季专项加权（冬季是中老年刚需旺季，权重较高）
+  const winterTypes = ['winter_warm','winter_protect','winter_chronic','winter_nourish','winter_safe'];
+  const winterCount = winterTypes.filter(id => checked(id)).length;
+  d += winterCount * 0.5;  // 每个冬季刚需类型 +0.5
+  if (val('winter_temp') === '强') d += 1;
+  if (val('winter_temp') === '中') d += 0.5;
+  if (val('winter_gift') === '强') d += 1;
+  if (val('winter_gift') === '中') d += 0.5;
+  const springDays = parseFloat(val('winter_spring_days'));
+  if (springDays > 0 && springDays <= 30) d += 1;       // 春节爆发期
+  else if (springDays > 30 && springDays <= 60) d += 0.5; // 预热期
   scores.demand = Math.min(5, Math.round(d));
 
   // 竞争烈度（分低=好）
@@ -774,6 +848,10 @@ function calcAll() {
     if (checked('match_filial')) reasons.push('具备孝心经济属性，微信生态转化好');
     if (val('cold_start') === '容易') reasons.push('视频号冷启动容易，流量获取成本低');
     if (radioVal('private') === '是') reasons.push('有私域沉淀价值，复购空间大');
+    // 冬季专项加分理由
+    if (winterCount >= 2) reasons.push(`冬季刚需属性强（覆盖${winterCount}类冬季需求），正值旺季`);
+    if (val('winter_temp') === '强') reasons.push('低温强关联，冬季使用场景刚需');
+    if (val('winter_gift') === '强' && springDays > 0 && springDays <= 60) reasons.push('春节送礼属性强，年货窗口转化高');
   }
 
   document.getElementById('decisionPanel').innerHTML =
@@ -801,6 +879,15 @@ function exportMarkdown() {
   md += `> 平台：微信小店 | 人群：中老年 | 模式：无货源不付费 | 日期：${val('date')||new Date().toLocaleDateString()}\n\n`;
   md += `## 一、基本信息\n- 候选商品：${p}\n- 目标人群：${val('audience')}\n- 数据来源：${val('source')}\n\n`;
   md += `## 二、人群适配\n- 高频刚需：${checked('need_highfreq')?'✅':'❌'}\n- 显性需求：${checked('need_explicit')?'✅':'❌'}\n- 季节窗口：${checked('need_seasonal')?'✅':'❌'}\n- 功能简单：${checked('match_simple')?'✅':'❌'}\n- 价格适中：${checked('match_price')?'✅':'❌'}\n- 孝心经济：${checked('match_filial')?'✅':'❌'}\n\n`;
+  // 冬季专项
+  const winterItems = [
+    checked('winter_warm') && '保暖类',
+    checked('winter_protect') && '护具类',
+    checked('winter_chronic') && '慢病管理类',
+    checked('winter_nourish') && '滋补养生类',
+    checked('winter_safe') && '安全出行类'
+  ].filter(Boolean);
+  md += `## 二·附、冬季专项\n- 冬季刚需类型：${winterItems.length ? winterItems.join('、') : '无'}\n- 低温关联度：${val('winter_temp')||'-'}\n- 春节送礼属性：${val('winter_gift')||'-'}\n- 距春节天数：${val('winter_spring_days')||'-'} 天\n\n`;
   md += `## 三、市场分析\n- 同类数量：${val('supply_count')}\n- 头部销量：${val('top_sales')}\n- 价格带：${val('price_min')}~${val('price_max')} 元（中位 ${val('price_mid')}）\n- 品牌垄断：${radioVal('monopoly')||'-'}\n- 内容互动：${val('content_interact')}\n- 制作成本：${val('content_cost')}\n- 跨类目：${val('cross_category')}\n\n`;
   md += `## 四、货源供应链\n- 平台：${val('supply_platform')}\n- 一件代发：${radioVal('dropship')||'-'}\n- 7天无理由：${radioVal('noreturn')||'-'}\n- 运费险：${radioVal('freightins')||'-'}\n- 发货时效：${val('ship_hours')} 小时\n- 库存：${val('stock')}\n\n`;
   md += `## 五、成本利润\n| 项目 | 金额 |\n|------|------|\n| 进货价 | ¥${purchase} |\n| 运费 | ¥${freight} |\n| 包装 | ¥${pack} |\n| 平台扣点 | ${val('rate_platform')}% |\n| 支付通道 | ${val('rate_pay')}% |\n| 综合成本 | ¥${totalCost.toFixed(2)} |\n| 计划售价 | ¥${sell} |\n| 单件毛利 | ¥${profit.toFixed(2)} |\n| 毛利率 | ${margin}% |\n| 预计月销 | ${val('monthly_sales')} |\n| 月毛利 | ¥${(profit*parseFloat(val('monthly_sales')||0)).toFixed(0)} |\n\n`;
