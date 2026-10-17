@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>选品分析工具 · 微信小店中老年无货源</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #2d3748;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header {
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 { font-size: 22px; color: #1a202c; }
+  .header p { color: #718096; font-size: 13px; margin-top: 4px; }
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #667eea; color: white; }
+  .btn-primary:hover { background: #5568d3; }
+  .btn-success { background: #48bb78; color: white; }
+  .btn-success:hover { background: #38a169; }
+  .btn-warning { background: #ed8936; color: white; }
+  .btn-warning:hover { background: #dd6b20; }
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+  .sidebar {
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  }
+  .step-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    color: #4a5568;
+  }
+  .step-item:hover { background: #f7fafc; }
+  .step-item.active { background: #667eea; color: white; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step-item.active .step-num { background: rgba(255,255,255,0.3); }
+  .content {
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    min-height: 500px;
+  }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .section h2 {
+    font-size: 18px;
+    color: #1a202c;
+    margin-bottom: 6px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .section-desc { color: #718096; font-size: 13px; margin-bottom: 20px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 6px;
+  }
+  .form-group .hint { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border 0.2s;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-group label {
+    padding: 8px 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 0.2s;
+    margin: 0;
+  }
+  .radio-group input { display: none; }
+  .radio-group input:checked + span {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+  .radio-group span {
+    display: block;
+    padding: 8px 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+  .checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f7fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .checkbox-item:hover { background: #edf2f7; }
+  .checkbox-item input { margin-top: 3px; width: 18px; height: 18px; cursor: pointer; }
+  .checkbox-item .text { font-size: 13px; line-height: 1.5; }
+  .checkbox-item .text strong { color: #667eea; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  .cost-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+  .cost-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .cost-table td:first-child { color: #4a5568; font-size: 13px; width: 40%; }
+  .cost-table input { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+  .result-box {
+    background: linear-gradient(135deg, #f6f8ff 0%, #eef0ff 100%);
+    border: 1.5px solid #c3dafe;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .result-box h3 { font-size: 14px; color: #4a5568; margin-bottom: 12px; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .result-card {
+    background: white;
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .result-card .label { font-size: 12px; color: #718096; margin-bottom: 4px; }
+  .result-card .value { font-size: 20px; font-weight: 700; color: #2d3748; }
+  .result-card .value.good { color: #38a169; }
+  .result-card .value.bad { color: #e53e3e; }
+  .result-card .value.warn { color: #dd6b20; }
+  .score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f7fafc;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .score-item .dim { font-size: 14px; font-weight: 500; }
+  .score-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .score-5 { background: #c6f6d5; color: #22543d; }
+  .score-4 { background: #d0f5d5; color: #276749; }
+  .score-3 { background: #feebc8; color: #7b341e; }
+  .score-2 { background: #fed7d7; color: #822727; }
+  .score-1 { background: #fc8181; color: white; }
+  .decision-panel {
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .decision-go { background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%); }
+  .decision-wait { background: linear-gradient(135deg, #feebc8 0%, #fbd38d 100%); }
+  .decision-stop { background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%); }
+  .decision-icon { font-size: 48px; margin-bottom: 8px; }
+  .decision-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .decision-desc { font-size: 14px; opacity: 0.8; margin-bottom: 16px; line-height: 1.6; }
+  .nav-buttons { display: flex; justify-content: space-between; margin-top: 24px; }
+  .reasons { text-align: left; max-width: 600px; margin: 12px auto 0; }
+  .reasons li { font-size: 13px; margin-bottom: 4px; line-height: 1.5; }
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2d3748;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>🛒 选品分析工具</h1>
+      <p>微信小店 · 中老年人群 · 无货源一件代发 · 不付费自然流量</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-success" onclick="exportMarkdown()">📥 导出报告</button>
+      <button class="btn btn-warning" onclick="resetForm()">🔄 重置</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div id="stepNav"></div>
+    </div>
+    <div class="content">
+      <!-- 1. 基本信息 -->
+      <div class="section active" data-step="1">
+        <h2>一、基本信息</h2>
+        <p class="section-desc">填写候选商品的基本信息</p>
+        <div class="form-group">
+          <label>候选品类 / 商品</label>
+          <input type="text" id="product" placeholder="例如：石墨烯护膝">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>目标子人群</label>
+            <input type="text" id="audience" placeholder="例如：60+ 关节不适老人">
+          </div>
+          <div class="form-group">
+            <label>选品人</label>
+            <input type="text" id="selector">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>选品日期</label>
+            <input type="text" id="date" value="">
+          </div>
+          <div class="form-group">
+            <label>数据来源</label>
+            <input type="text" id="source" placeholder="蝉妈妈 / 1688 / 同行观察">
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <span></span>
+          <button class="btn btn-primary" onclick="goStep(2)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 2. 人群适配 -->
+      <div class="section" data-step="2">
+        <h2>二、选品方向判断（中老年人群适配）</h2>
+        <p class="section-desc">中老年选品三优先：实用 > 健康 > 情感</p>
+        <div class="form-group">
+          <label>需求真实性</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" id="need_highfreq"><span class="text">是中老年<strong>高频/刚需/痛点</strong>型需求（助行、慢病、养生、保暖、护具、孙辈用品）</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="need_explicit"><span class="text">是<strong>显性需求</strong>而非需教育市场的隐性需求（降低内容成本）</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="need_seasonal"><span class="text">有<strong>季节性/节假日</strong>窗口（冬季保暖、春节送礼等）</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>人群匹配度</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" id="match_simple"><span class="text">商品功能<strong>简单易懂</strong>（中老年对复杂功能接受度低）</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="match_price"><span class="text">价格在 <strong>39-199 元</strong> 可接受区间</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="match_filial"><span class="text">容易引发<strong>子女代购</strong>（孝心经济是微信生态强转化点）</span></label>
+          </div>
+        </div>
+
+        <!-- 冬季专项 -->
+        <div class="form-group" style="margin-top:24px; padding:16px; background:linear-gradient(135deg,#e0f2fe 0%,#f0f9ff 100%); border-radius:12px; border:1.5px solid #7dd3fc;">
+          <label style="font-size:15px; color:#0c4a6e;">❄️ 冬季选品专项</label>
+          <div class="hint" style="color:#0369a1; margin-bottom:12px;">冬季是中老年刚需旺季，勾选后需求强度大幅加权</div>
+
+          <div style="margin-bottom:14px;">
+            <label style="font-size:13px; font-weight:600; color:#2d3748; margin-bottom:6px; display:block;">冬季刚需类型（可多选）</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_warm"><span class="text"><strong>保暖类</strong>（保暖内衣、羽绒服、暖手宝、暖宝宝、电热毯）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_protect"><span class="text"><strong>护具类</strong>（护膝、护腰、护颈、关节保暖，冬季老寒腿高发）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_chronic"><span class="text"><strong>慢病管理类</strong>（血压计、血糖仪、制氧机，冬季心血管病高发）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_nourish"><span class="text"><strong>滋补养生类</strong>（阿胶、燕窝、枸杞、养生茶，冬令进补）</span></label>
+              <label class="checkbox-item" style="background:white;"><input type="checkbox" id="winter_safe"><span class="text"><strong>安全出行类</strong>（防滑鞋、拐杖、助行器，冬季路滑跌倒风险高）</span></label>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>低温关联度</label>
+              <select id="winter_temp" onchange="updateWinterTip()">
+                <option value="">请选择</option>
+                <option value="强">强（必须在低温环境使用）</option>
+                <option value="中">中（冬季体验明显更好）</option>
+                <option value="弱">弱（与温度关系不大）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>春节送礼属性</label>
+              <select id="winter_gift" onchange="updateWinterTip()">
+                <option value="">请选择</option>
+                <option value="强">强（典型年货/孝心礼）</option>
+                <option value="中">中（可作为礼品）</option>
+                <option value="弱">弱（自用为主）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>距春节天数（自动计算加权）</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="number" id="winter_spring_days" placeholder="例如：60" oninput="updateWinterTip()" style="flex:1;">
+              <span style="font-size:12px; color:#0369a1;" id="winter_tip">距离春节越近，送礼转化越强</span>
+            </div>
+            <div class="hint">≤30天：强需求爆发期 | 31-60天：预热期 | >60天：常规期</div>
+          </div>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(1)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(3)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 3. 市场分析 -->
+      <div class="section" data-step="3">
+        <h2>三、市场分析（微信小店生态）</h2>
+        <p class="section-desc">评估竞争烈度和内容机会</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>同类商品数量</label>
+            <select id="supply_count">
+              <option value="">请选择</option>
+              <option value="少">少（竞争小）</option>
+              <option value="中">中</option>
+              <option value="多">多（竞争激烈）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>头部商家月销</label>
+            <input type="text" id="top_sales" placeholder="例如：5000+">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>价格带最低（元）</label>
+            <input type="number" id="price_min">
+          </div>
+          <div class="form-group">
+            <label>价格带中位数（元）</label>
+            <input type="number" id="price_mid">
+          </div>
+          <div class="form-group">
+            <label>价格带最高（元）</label>
+            <input type="number" id="price_max">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>是否有品牌/旗舰店垄断？</label>
+          <div class="radio-group">
+            <label><input type="radio" name="monopoly" value="否"><span>否</span></label>
+            <label><input type="radio" name="monopoly" value="是"><span>是（不建议无货源进入）</span></label>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>视频号同类内容互动量</label>
+            <select id="content_interact">
+              <option value="">请选择</option>
+              <option value="高">高（点赞转发多）</option>
+              <option value="中">中</option>
+              <option value="低">低</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>内容制作成本</label>
+            <select id="content_cost">
+              <option value="">请选择</option>
+              <option value="低">低（手机可拍）</option>
+              <option value="中">中</option>
+              <option value="高">高（需专业拍摄）</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>可关联的跨一级类目</label>
+          <input type="text" id="cross_category" placeholder="例如：护膝可关联运动户外、医疗器械">
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(2)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(4)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 4. 货源供应链 -->
+      <div class="section" data-step="4">
+        <h2>四、货源与供应链（无货源代发）</h2>
+        <p class="section-desc">无货源最怕断货，至少准备 2 家备选</p>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>主要货源平台</label>
+            <select id="supply_platform">
+              <option value="">请选择</option>
+              <option>1688</option>
+              <option>拼多多</option>
+              <option>淘宝</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>货源链接</label>
+            <input type="text" id="supply_url">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>一件代发</label>
+            <div class="radio-group">
+              <label><input type="radio" name="dropship" value="是"><span>是</span></label>
+              <label><input type="radio" name="dropship" value="否"><span>否</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>7天无理由</label>
+            <div class="radio-group">
+              <label><input type="radio" name="noreturn" value="是"><span>是</span></label>
+              <label><input type="radio" name="noreturn" value="否"><span>否</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>运费险</label>
+            <div class="radio-group">
+              <label><input type="radio" name="freightins" value="是"><span>是</span></label>
+              <label><input type="radio" name="freightins" value="否"><span>否</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>发货时效（小时内）</label>
+            <input type="number" id="ship_hours">
+          </div>
+          <div class="form-group">
+            <label>库存深度</label>
+            <select id="stock">
+              <option value="">请选择</option>
+              <option value="充足">充足</option>
+              <option value="一般">一般</option>
+              <option value="紧张">紧张</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>代发风险检查</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" id="risk_fragile"><span class="text">商品有<strong>易碎/易漏/易坏</strong>风险（中老年客诉容忍度低）</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="risk_safety"><span class="text">有<strong>质量安全</strong>隐患（食品、保健、贴身用品慎选）</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="risk_leak"><span class="text">供应商会<strong>泄露给买家</strong>（带品牌卡片/售后卡）</span></label>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(3)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(5)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 5. 成本利润 -->
+      <div class="section" data-step="5">
+        <h2>五、成本与利润测算</h2>
+        <p class="section-desc">无货源不付费模式：毛利率 ≥ 40%，单件毛利 ≥ 15 元</p>
+        <table class="cost-table">
+          <tr><td>货源进货价（元）</td><td><input type="number" id="cost_purchase" oninput="calcProfit()"></td></tr>
+          <tr><td>代发运费（元）</td><td><input type="number" id="cost_freight" oninput="calcProfit()"></td></tr>
+          <tr><td>包装费（元）</td><td><input type="number" id="cost_pack" oninput="calcProfit()"></td></tr>
+          <tr><td>平台扣点费率（%）</td><td><input type="number" id="rate_platform" value="3" oninput="calcProfit()"></td></tr>
+          <tr><td>支付通道费率（%）</td><td><input type="number" id="rate_pay" value="0.6" oninput="calcProfit()"></td></tr>
+          <tr><td>计划售价（元）</td><td><input type="number" id="price_sell" oninput="calcProfit()"></td></tr>
+          <tr><td>预计月销量</td><td><input type="number" id="monthly_sales" oninput="calcProfit()"></td></tr>
+        </table>
+        <div class="result-box">
+          <h3>💰 实时计算结果</h3>
+          <div class="result-grid">
+            <div class="result-card"><div class="label">综合成本</div><div class="value" id="r_total_cost">-</div></div>
+            <div class="result-card"><div class="label">单件毛利</div><div class="value" id="r_profit">-</div></div>
+            <div class="result-card"><div class="label">毛利率</div><div class="value" id="r_margin">-</div></div>
+            <div class="result-card"><div class="label">预计月毛利</div><div class="value" id="r_monthly">-</div></div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>退换货率预估（%）</label>
+          <input type="number" id="return_rate" placeholder="中老年通常 10-15%" value="12">
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(4)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(6)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 6. 内容流量 -->
+      <div class="section" data-step="6">
+        <h2>六、内容与流量获取（自然流量）</h2>
+        <p class="section-desc">不付费投放，内容是唯一流量来源</p>
+        <div class="form-group">
+          <label>主推内容形式</label>
+          <div class="checkbox-group">
+            <label class="checkbox-item"><input type="checkbox" id="form_video"><span class="text">短视频</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="form_image"><span class="text">图文</span></label>
+            <label class="checkbox-item"><input type="checkbox" id="form_live"><span class="text">直播</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>内容脚本方向</label>
+          <input type="text" id="script_dir" placeholder="例如：实测使用、孝心送礼、专家科普">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>内容可批量复制性</label>
+            <select id="content_replicate">
+              <option value="">请选择</option>
+              <option value="高">高</option>
+              <option value="中">中</option>
+              <option value="低">低</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>视频号冷启动难度</label>
+            <select id="cold_start">
+              <option value="">请选择</option>
+              <option value="容易">容易（情感/实用/孝心类）</option>
+              <option value="一般">一般</option>
+              <option value="难">难</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>是否有热点/节日话题？</label>
+          <div class="radio-group">
+            <label><input type="radio" name="hot_topic" value="是"><span>是</span></label>
+            <label><input type="radio" name="hot_topic" value="否"><span>否</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>是否需要专业拍摄？</label>
+          <div class="radio-group">
+            <label><input type="radio" name="pro_shoot" value="否"><span>否（手机可拍，推荐）</span></label>
+            <label><input type="radio" name="pro_shoot" value="是"><span>是</span></label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>主要转化入口</label>
+          <select id="conversion">
+            <option value="">请选择</option>
+            <option>视频号挂车</option>
+            <option>朋友圈</option>
+            <option>社群</option>
+            <option>公众号</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>是否有私域沉淀价值？</label>
+          <div class="radio-group">
+            <label><input type="radio" name="private" value="是"><span>是（中老年复购率高）</span></label>
+            <label><input type="radio" name="private" value="否"><span>否</span></label>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(5)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(7)">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 7. 风险评估 -->
+      <div class="section" data-step="7">
+        <h2>七、风险评估</h2>
+        <p class="section-desc">评估各类风险等级</p>
+        <table class="cost-table">
+          <tr><td>货源断货/涨价</td><td><select id="risk_stock" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+          <tr><td>售后纠纷多</td><td><select id="risk_service" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+          <tr><td>平台规则收紧</td><td><select id="risk_rule" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+          <tr><td>内容侵权</td><td><select id="risk_infringe" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+          <tr><td>退换货亏损</td><td><select id="risk_return" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+          <tr><td>跨类目违规</td><td><select id="risk_cross" class="risk-select"><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></td></tr>
+        </table>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(6)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(8)">查看决策 →</button>
+        </div>
+      </div>
+
+      <!-- 8. 决策结论 -->
+      <div class="section" data-step="8">
+        <h2>八、决策结论</h2>
+        <p class="section-desc">系统根据填写内容自动评分并给出建议</p>
+        <div id="scorePanel"></div>
+        <div id="decisionPanel"></div>
+        <div class="nav-buttons">
+          <button class="btn btn-primary" onclick="goStep(7)">← 上一步</button>
+          <button class="btn btn-success" onclick="exportMarkdown()">📥 导出完整报告</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const steps = [
+  {n:1, name:'基本信息'}, {n:2, name:'人群适配'}, {n:3, name:'市场分析'},
+  {n:4, name:'货源供应链'}, {n:5, name:'成本利润'}, {n:6, name:'内容流量'},
+  {n:7, name:'风险评估'}, {n:8, name:'决策结论'}
+];
+
+function renderNav() {
+  const nav = document.getElementById('stepNav');
+  nav.innerHTML = steps.map(s =>
+    `<div class="step-item ${s.n===1?'active':''}" onclick="goStep(${s.n})">
+      <div class="step-num">${s.n}</div>${s.name}
+    </div>`
+  ).join('');
+}
+
+function goStep(n) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.section[data-step="${n}"]`).classList.add('active');
+  document.querySelectorAll('.step-item').forEach((s,i) => s.classList.toggle('active', i===n-1));
+  if (n === 8) { calcAll(); }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function checked(id) { const el = document.getElementById(id); return el ? el.checked : false; }
+function radioVal(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+
+function updateWinterTip() {
+  const days = parseFloat(val('winter_spring_days'));
+  const gift = val('winter_gift');
+  const tip = document.getElementById('winter_tip');
+  if (!tip) return;
+  let msg = '距离春节越近，送礼转化越强';
+  if (days > 0) {
+    if (days <= 30) msg = '🔥 距春节≤30天，年货爆发期，送礼需求最强';
+    else if (days <= 60) msg = '📈 距春节31-60天，预热期，适合提前布局';
+    else msg = '常规期，春节红利尚未开启';
+  }
+  if (gift === '强' && days > 0 && days <= 60) msg += ' · 年货礼推荐上架';
+  tip.textContent = msg;
+}
+
+function calcProfit() {
+  const purchase = parseFloat(val('cost_purchase')) || 0;
+  const freight = parseFloat(val('cost_freight')) || 0;
+  const pack = parseFloat(val('cost_pack')) || 0;
+  const rateP = (parseFloat(val('rate_platform')) || 0) / 100;
+  const ratePay = (parseFloat(val('rate_pay')) || 0) / 100;
+  const sell = parseFloat(val('price_sell')) || 0;
+  const sales = parseFloat(val('monthly_sales')) || 0;
+
+  if (sell > 0) {
+    const totalCost = purchase + freight + pack + sell * (rateP + ratePay);
+    const profit = sell - totalCost;
+    const margin = (profit / sell * 100);
+    const monthly = profit * sales;
+
+    document.getElementById('r_total_cost').textContent = '¥' + totalCost.toFixed(2);
+    document.getElementById('r_profit').textContent = '¥' + profit.toFixed(2);
+    document.getElementById('r_profit').className = 'value ' + (profit >= 15 ? 'good' : 'bad');
+    document.getElementById('r_margin').textContent = margin.toFixed(1) + '%';
+    document.getElementById('r_margin').className = 'value ' + (margin >= 40 ? 'good' : margin >= 25 ? 'warn' : 'bad');
+    document.getElementById('r_monthly').textContent = sales > 0 ? '¥' + monthly.toFixed(0) : '-';
+  } else {
+    ['r_total_cost','r_profit','r_margin','r_monthly'].forEach(id => document.getElementById(id).textContent = '-');
+  }
+}
+
+function calcAll() {
+  // ===== 6 维评分 =====
+  const scores = {
+    demand: 0, competition: 0, supply: 0, profit: 0, content: 0, service: 0
+  };
+
+  // 需求强度
+  let d = 1;
+  if (checked('need_highfreq')) d += 1.5;
+  if (checked('need_explicit')) d += 1;
+  if (checked('need_seasonal')) d += 0.5;
+  if (checked('match_simple')) d += 0.5;
+  if (checked('match_filial')) d += 0.5;
+  // 冬季专项加权（冬季是中老年刚需旺季，权重较高）
+  const winterTypes = ['winter_warm','winter_protect','winter_chronic','winter_nourish','winter_safe'];
+  const winterCount = winterTypes.filter(id => checked(id)).length;
+  d += winterCount * 0.5;  // 每个冬季刚需类型 +0.5
+  if (val('winter_temp') === '强') d += 1;
+  if (val('winter_temp') === '中') d += 0.5;
+  if (val('winter_gift') === '强') d += 1;
+  if (val('winter_gift') === '中') d += 0.5;
+  const springDays = parseFloat(val('winter_spring_days'));
+  if (springDays > 0 && springDays <= 30) d += 1;       // 春节爆发期
+  else if (springDays > 30 && springDays <= 60) d += 0.5; // 预热期
+  scores.demand = Math.min(5, Math.round(d));
+
+  // 竞争烈度（分低=好）
+  let c = 3;
+  if (val('supply_count') === '少') c += 1.5;
+  if (val('supply_count') === '多') c -= 1.5;
+  if (radioVal('monopoly') === '是') c -= 2;
+  scores.competition = Math.max(1, Math.min(5, Math.round(c)));
+
+  // 货源稳定性
+  let s = 1;
+  if (radioVal('dropship') === '是') s += 1;
+  if (radioVal('noreturn') === '是') s += 0.5;
+  if (radioVal('freightins') === '是') s += 0.5;
+  const hours = parseFloat(val('ship_hours'));
+  if (hours > 0 && hours <= 48) s += 1;
+  if (val('stock') === '充足') s += 1;
+  if (val('stock') === '紧张') s -= 1;
+  if (checked('risk_fragile')) s -= 0.5;
+  if (checked('risk_safety')) s -= 0.5;
+  scores.supply = Math.max(1, Math.min(5, Math.round(s)));
+
+  // 利润空间
+  const purchase = parseFloat(val('cost_purchase')) || 0;
+  const sell = parseFloat(val('price_sell')) || 0;
+  let p = 1;
+  if (sell > 0 && purchase > 0) {
+    const margin = (sell - purchase - parseFloat(val('cost_freight')||0) - parseFloat(val('cost_pack')||0)) / sell * 100;
+    if (margin >= 50) p += 2;
+    else if (margin >= 40) p += 1.5;
+    else if (margin >= 25) p += 0.5;
+    const profit = sell - purchase;
+    if (profit >= 30) p += 1.5;
+    else if (profit >= 15) p += 1;
+  }
+  scores.profit = Math.max(1, Math.min(5, Math.round(p)));
+
+  // 内容可行性
+  let co = 1;
+  if (val('content_cost') === '低') co += 1.5;
+  if (val('content_cost') === '高') co -= 1;
+  if (val('content_interact') === '高') co += 1;
+  if (val('content_replicate') === '高') co += 1;
+  if (val('cold_start') === '容易') co += 1;
+  if (radioVal('pro_shoot') === '否') co += 0.5;
+  scores.content = Math.max(1, Math.min(5, Math.round(co)));
+
+  // 售后风险（风险低=高分）
+  let sv = 3;
+  const riskVals = ['risk_stock','risk_service','risk_rule','risk_infringe','risk_return','risk_cross'];
+  riskVals.forEach(id => {
+    if (val(id) === '低') sv += 0.3;
+    if (val(id) === '高') sv -= 0.5;
+  });
+  const retRate = parseFloat(val('return_rate')) || 12;
+  if (retRate <= 10) sv += 0.5;
+  if (retRate >= 20) sv -= 0.5;
+  scores.service = Math.max(1, Math.min(5, Math.round(sv)));
+
+  // 渲染评分
+  const dims = [
+    {k:'demand', name:'需求强度'}, {k:'competition', name:'竞争烈度'},
+    {k:'supply', name:'货源稳定性'}, {k:'profit', name:'利润空间'},
+    {k:'content', name:'内容可行性'}, {k:'service', name:'售后风险'}
+  ];
+  document.getElementById('scorePanel').innerHTML = dims.map(d =>
+    `<div class="score-item">
+      <span class="dim">${d.name}</span>
+      <span class="score-badge score-${scores[d.k]}">${scores[d.k]} / 5</span>
+    </div>`
+  ).join('');
+
+  // ===== 决策 =====
+  const total = Object.values(scores).reduce((a,b)=>a+b, 0);
+  const avg = total / 6;
+  const reasons = [];
+
+  // 一票否决项
+  let veto = false;
+  if (scores.profit <= 1) { reasons.push('利润空间过低，无货源模式不划算'); veto = true; }
+  if (scores.supply <= 1) { reasons.push('货源稳定性太差，断货风险高'); veto = true; }
+  if (radioVal('monopoly') === '是') { reasons.push('类目被品牌垄断，无货源难以竞争'); veto = true; }
+  if (checked('risk_safety') && val('risk_rule') === '高') { reasons.push('质量安全隐患+平台规则风险高，不建议进入'); veto = true; }
+
+  let decision, icon, cls, desc;
+  if (veto || avg < 2.2) {
+    decision = '❌ 建议放弃'; icon = '🚫'; cls = 'decision-stop';
+    desc = '存在明显硬伤，继续投入大概率亏损，建议换品。';
+  } else if (avg >= 3.5 && scores.profit >= 3 && scores.demand >= 3) {
+    decision = '✅ 建议上架测试'; icon = '🎉'; cls = 'decision-go';
+    desc = '综合表现良好，建议先小批量跑 3-5 天验证数据。';
+  } else {
+    decision = '⏳ 建议暂缓优化'; icon = '⚠️'; cls = 'decision-wait';
+    desc = '有潜力但存在短板，建议优化后再上架。';
+  }
+
+  // 加分原因
+  if (!veto) {
+    if (scores.demand >= 4) reasons.push('需求强度高，中老年刚需明显');
+    if (scores.profit >= 4) reasons.push('利润空间充足，可覆盖售后成本');
+    if (scores.content >= 4) reasons.push('内容制作成本低，适合自然流量打法');
+    if (checked('match_filial')) reasons.push('具备孝心经济属性，微信生态转化好');
+    if (val('cold_start') === '容易') reasons.push('视频号冷启动容易，流量获取成本低');
+    if (radioVal('private') === '是') reasons.push('有私域沉淀价值，复购空间大');
+    // 冬季专项加分理由
+    if (winterCount >= 2) reasons.push(`冬季刚需属性强（覆盖${winterCount}类冬季需求），正值旺季`);
+    if (val('winter_temp') === '强') reasons.push('低温强关联，冬季使用场景刚需');
+    if (val('winter_gift') === '强' && springDays > 0 && springDays <= 60) reasons.push('春节送礼属性强，年货窗口转化高');
+  }
+
+  document.getElementById('decisionPanel').innerHTML =
+    `<div class="decision-panel ${cls}">
+      <div class="decision-icon">${icon}</div>
+      <div class="decision-title">${decision}</div>
+      <div class="decision-desc">${desc}<br>综合评分：<strong>${avg.toFixed(1)}</strong> / 5.0</div>
+      ${reasons.length ? '<ul class="reasons">' + reasons.map(r=>`<li>• ${r}</li>`).join('') + '</ul>' : ''}
+    </div>`;
+}
+
+function exportMarkdown() {
+  const p = val('product') || '未命名商品';
+  const purchase = parseFloat(val('cost_purchase'))||0;
+  const freight = parseFloat(val('cost_freight'))||0;
+  const pack = parseFloat(val('cost_pack'))||0;
+  const sell = parseFloat(val('price_sell'))||0;
+  const rateP = (parseFloat(val('rate_platform'))||0)/100;
+  const ratePay = (parseFloat(val('rate_pay'))||0)/100;
+  const totalCost = purchase+freight+pack+sell*(rateP+ratePay);
+  const profit = sell - totalCost;
+  const margin = sell>0 ? (profit/sell*100).toFixed(1) : '-';
+
+  let md = `# 选品分析报告 · ${p}\n\n`;
+  md += `> 平台：微信小店 | 人群：中老年 | 模式：无货源不付费 | 日期：${val('date')||new Date().toLocaleDateString()}\n\n`;
+  md += `## 一、基本信息\n- 候选商品：${p}\n- 目标人群：${val('audience')}\n- 数据来源：${val('source')}\n\n`;
+  md += `## 二、人群适配\n- 高频刚需：${checked('need_highfreq')?'✅':'❌'}\n- 显性需求：${checked('need_explicit')?'✅':'❌'}\n- 季节窗口：${checked('need_seasonal')?'✅':'❌'}\n- 功能简单：${checked('match_simple')?'✅':'❌'}\n- 价格适中：${checked('match_price')?'✅':'❌'}\n- 孝心经济：${checked('match_filial')?'✅':'❌'}\n\n`;
+  // 冬季专项
+  const winterItems = [
+    checked('winter_warm') && '保暖类',
+    checked('winter_protect') && '护具类',
+    checked('winter_chronic') && '慢病管理类',
+    checked('winter_nourish') && '滋补养生类',
+    checked('winter_safe') && '安全出行类'
+  ].filter(Boolean);
+  md += `## 二·附、冬季专项\n- 冬季刚需类型：${winterItems.length ? winterItems.join('、') : '无'}\n- 低温关联度：${val('winter_temp')||'-'}\n- 春节送礼属性：${val('winter_gift')||'-'}\n- 距春节天数：${val('winter_spring_days')||'-'} 天\n\n`;
+  md += `## 三、市场分析\n- 同类数量：${val('supply_count')}\n- 头部销量：${val('top_sales')}\n- 价格带：${val('price_min')}~${val('price_max')} 元（中位 ${val('price_mid')}）\n- 品牌垄断：${radioVal('monopoly')||'-'}\n- 内容互动：${val('content_interact')}\n- 制作成本：${val('content_cost')}\n- 跨类目：${val('cross_category')}\n\n`;
+  md += `## 四、货源供应链\n- 平台：${val('supply_platform')}\n- 一件代发：${radioVal('dropship')||'-'}\n- 7天无理由：${radioVal('noreturn')||'-'}\n- 运费险：${radioVal('freightins')||'-'}\n- 发货时效：${val('ship_hours')} 小时\n- 库存：${val('stock')}\n\n`;
+  md += `## 五、成本利润\n| 项目 | 金额 |\n|------|------|\n| 进货价 | ¥${purchase} |\n| 运费 | ¥${freight} |\n| 包装 | ¥${pack} |\n| 平台扣点 | ${val('rate_platform')}% |\n| 支付通道 | ${val('rate_pay')}% |\n| 综合成本 | ¥${totalCost.toFixed(2)} |\n| 计划售价 | ¥${sell} |\n| 单件毛利 | ¥${profit.toFixed(2)} |\n| 毛利率 | ${margin}% |\n| 预计月销 | ${val('monthly_sales')} |\n| 月毛利 | ¥${(profit*parseFloat(val('monthly_sales')||0)).toFixed(0)} |\n\n`;
+  md += `## 六、内容流量\n- 形式：${[checked('form_video')&&'短视频',checked('form_image')&&'图文',checked('form_live')&&'直播'].filter(Boolean).join('、')||'-'}\n- 脚本方向：${val('script_dir')}\n- 可复制性：${val('content_replicate')}\n- 冷启动：${val('cold_start')}\n- 转化入口：${val('conversion')}\n- 私域价值：${radioVal('private')||'-'}\n\n`;
+  md += `## 七、风险评估\n- 断货涨价：${val('risk_stock')}\n- 售后纠纷：${val('risk_service')}\n- 规则收紧：${val('risk_rule')}\n- 内容侵权：${val('risk_infringe')}\n- 退换亏损：${val('risk_return')}\n- 跨类违规：${val('risk_cross')}\n\n`;
+
+  // 决策（简单计算）
+  const scoreEl = document.querySelector('.score-badge');
+  md += `## 八、决策结论\n（请在网页中查看完整评分与建议，或重新运行工具生成）\n`;
+
+  const blob = new Blob([md], {type:'text/markdown;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${p}_选品分析报告.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 报告已导出');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2000);
+}
+
+function resetForm() {
+  if (!confirm('确定重置所有内容吗？')) return;
+  document.querySelectorAll('input[type="text"],input[type="number"],textarea').forEach(e=>e.value='');
+  document.querySelectorAll('input[type="checkbox"]').forEach(e=>e.checked=false);
+  document.querySelectorAll('select').forEach(e=>e.selectedIndex=0);
+  document.querySelectorAll('input[type="radio"]').forEach(e=>e.checked=false);
+  document.getElementById('rate_platform').value = 3;
+  document.getElementById('rate_pay').value = 0.6;
+  document.getElementById('return_rate').value = 12;
+  calcProfit();
+  goStep(1);
+  showToast('已重置');
+}
+
+// 初始化
+renderNav();
+document.getElementById('date').value = new Date().toLocaleDateString('zh-CN');
+</script>
+</body>
+</html>
